@@ -12,7 +12,7 @@ COPY assets/scripts/ccm-help /usr/local/bin/
 COPY assets/scripts/ccm-service /usr/local/bin/
 COPY assets/entrypoint.sh /
 COPY assets/bashrc /root/.bashrc
-COPY build /
+COPY build.sh /
 
 ADD https://raw.githubusercontent.com/concrete5-community/cli/master/c5 /usr/local/bin/
 ADD https://raw.githubusercontent.com/concrete5-community/cli/master/composerpkg /usr/local/bin/

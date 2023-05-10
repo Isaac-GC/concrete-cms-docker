@@ -1,4 +1,4 @@
-FROM ghcr.io/isaac-gc/docker5:base
+FROM ghcr.io/isaac-gc/concrete-cms-docker:base
 
 ARG CCM_PHP_VERSION=8.2
 # ARG CCM_COMPOSER_VERSION=2

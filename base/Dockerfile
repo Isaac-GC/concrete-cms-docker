@@ -21,8 +21,8 @@ EXPOSE 80 \
        3306 \
        9000
 
-RUN /build \
-    && rm /build
+RUN /build.sh \
+    && rm /build.sh
 
 COPY assets/nginx.conf /etc/nginx/sites-available/default
 

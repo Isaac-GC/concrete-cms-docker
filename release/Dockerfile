@@ -5,6 +5,6 @@ ARG CCM_COMPOSER_VERSION=2
 ARG CCM_C5_ARCHIVE=https://github.com/concretecms/concretecms/archive/develop.tar.gz
 ARG CCM_STARTING_POINT=atomik_full
 
-COPY build /
+COPY build.sh /
 
-RUN /build && rm /build
+RUN /build.sh && rm /build.sh

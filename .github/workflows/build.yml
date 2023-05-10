@@ -14,9 +14,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Build
-        uses: docker build --force-rm --rm --tag ghcr.io/isaac-gc/concrete-cms-docker:base ./base
+        run: docker build --force-rm --rm --tag ghcr.io/isaac-gc/concrete-cms-docker:base ./base
       - name: Save base docker image
-        uses: docker save ghcr.io/isaac-gc/concrete-cms-docker:base | gzip > /tmp/base-image.tgz
+        run: docker save ghcr.io/isaac-gc/concrete-cms-docker:base | gzip > /tmp/base-image.tgz
       - name: Upload package
         uses: actions/upload-artifact@v3
         with: 

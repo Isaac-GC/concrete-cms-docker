@@ -48,10 +48,10 @@ jobs:
         run: docker load --input /tmp/base-image.tgz
       - name: Build and Tag Image - Concrete CMS 9.1.2
         run: |
-          docker build --build-arg CCM_PHP_VERSION=9.1.2 --build-arg CCM_C5_ARCHIVE="https://github.com/concretecms/concretecms/archive/refs/tags/9.1.2.tar.gz" --tag ghcr.io/isaac-gc/concrete-cms-docker:9.1.2 ./installed
+          docker build --build-arg CCM_PHP_VERSION=9.1.2 --build-arg CCM_C5_ARCHIVE="https://github.com/concretecms/concretecms/archive/refs/tags/9.1.2.tar.gz" --tag ghcr.io/isaac-gc/concrete-cms-docker:9.1.2 ./release
       - name: Build and Tag Image - Concrete CMS 9.2.0
         run: |
-            docker build --build-arg CCM_PHP_VERSION=9.2.0 --build-arg CCM_C5_ARCHIVE="https://github.com/concretecms/concretecms/archive/refs/tags/9.2.0.tar.gz" --tag ghcr.io/isaac-gc/concrete-cms-docker:9.2.0 ./installed
+            docker build --build-arg CCM_PHP_VERSION=9.2.0 --build-arg CCM_C5_ARCHIVE="https://github.com/concretecms/concretecms/archive/refs/tags/9.2.0.tar.gz" --tag ghcr.io/isaac-gc/concrete-cms-docker:9.2.0 ./release
       - name: Check that MariaDB works - Concrete CMS 9.1.2
         run: docker run --rm --entrypoint='' ghcr.io/isaac-gc/concrete-cms-docker:9.1.2 ccm-service start db
       - name: Check that MariaDB works - Concrete CMS 9.2.0

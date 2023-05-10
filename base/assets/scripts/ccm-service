@@ -1,0 +1,221 @@
+#!/bin/sh
+set -o nounset
+set -o errexit
+
+script_name=$0
+php_major_minor=
+php_major_minor_int=
+
+exitWithSyntax() {
+    printf 'Syntax: %s <start|restart|stop|status> [db] [web] [nginx] [php-fpm|php|fpm]\n\nStart/restart/stop the database and the webserver services, or check if they are running.\nIf you specify "status", the returned code will be 0 if the services are running, 1 otherwise.\n' "$script_name" >&2
+    exit 1
+}
+
+getPhpMajorMinor() {
+    if test -z "$php_major_minor"; then
+        php_major_minor="$(php -n -r "echo PHP_MAJOR_VERSION, '.', PHP_MINOR_VERSION;")"
+    fi
+    printf '%s' "$php_major_minor"
+}
+
+getPhpMajorMinorInt() {
+    if test -z "$php_major_minor_int"; then
+        php_major_minor_int="$(php -n -r "echo PHP_MAJOR_VERSION, PHP_MINOR_VERSION;")"
+    fi
+    printf '%s' "$php_major_minor_int"
+}
+
+isMariaDBRunning() {
+    mysqladmin status -s >/dev/null 2>&1 && return 0 || return 1
+}
+
+isNginxRunning() {
+    service nginx status >/dev/null 2>&1 && return 0 || return 1
+}
+
+isPhpFpmRunning() {
+    service php$(getPhpMajorMinor)-fpm status >/dev/null 2>&1 && return 0 || return 1
+}
+
+operation=
+do_all=1
+do_mariadb=0
+do_nginx=0
+do_phpfpm=0
+while :; do
+    if test $# -lt 1; then
+        break
+    fi
+    case "$1" in
+        start | stop | restart | status)
+            if test "$operation" != ''; then
+                exitWithSyntax
+            fi
+            operation=$1
+            ;;
+        db)
+            do_all=0
+            do_mariadb=1
+            ;;
+        web)
+            do_all=0
+            do_nginx=1
+            do_phpfpm=1
+            ;;
+        nginx)
+            do_all=0
+            do_nginx=1
+            ;;
+        php-fpm | php | fpm)
+            do_all=0
+            do_phpfpm=1
+            ;;
+        *)
+            exitWithSyntax
+            ;;
+    esac
+    shift
+done
+if test "$operation" = ''; then
+    exitWithSyntax
+fi
+do_mariadb=$((do_mariadb + do_all))
+do_nginx=$((do_nginx + do_all))
+do_phpfpm=$((do_phpfpm + do_all))
+rc=0
+
+if test $operation = 'status'; then
+    if test $do_mariadb -ne 0; then
+        printf 'MariaDB running: '
+        if isMariaDBRunning; then
+            printf 'yes.\n'
+        else
+            printf 'no.\n'
+            rc=1
+        fi
+    fi
+    if test $do_nginx -ne 0; then
+        printf 'Nginx running: '
+        if isNginxRunning; then
+            printf 'yes.\n'
+        else
+            printf 'no.\n'
+            rc=1
+        fi
+    fi
+    if test $do_phpfpm -ne 0; then
+        printf 'PHP-FPM running: '
+        if isPhpFpmRunning; then
+            printf 'yes.\n'
+        else
+            printf 'no.\n'
+            rc=1
+        fi
+    fi
+    exit $rc
+fi
+
+if test $do_mariadb -ne 0; then
+    if test "$operation" != 'start'; then
+        printf 'Stopping MariaDB... '
+        if isMariaDBRunning; then
+            if mysqladmin shutdown >/dev/null; then
+                printf 'done.\n'
+            else
+                printf '\nFAILED!.\n' >&2
+                rc=1
+            fi
+        else
+            printf 'not running.\n'
+        fi
+    fi
+    if test "$operation" != 'stop'; then
+        printf 'Starting MariaDB... '
+        if isMariaDBRunning; then
+            printf 'already running.\n'
+        else
+            /bin/sh -c '/usr/bin/mysqld_safe >/var/log/mysqld_safe.log 2>&1 &' >/var/log/mysqld_safe.log 2>&1
+            for i in $(seq 1 31); do
+                if test $i -eq 31; then
+                    printf '\n'
+                    cat /var/log/mysqld_safe.log >&2
+                    printf '\nFAILED!.\n' >&2
+                    rc=1
+                    break
+                fi
+                sleep 1
+                if isMariaDBRunning; then
+                    printf 'done.\n'
+                    break
+                fi
+            done
+        fi
+    fi
+fi
+
+if test $do_nginx -ne 0; then
+    if test "$operation" != 'start'; then
+        printf 'Stopping Nginx... '
+        if isNginxRunning; then
+            if service nginx stop >/dev/null; then
+                printf 'done.\n'
+            else
+                printf '\nFAILED!.\n' >&2
+                rc=1
+            fi
+        else
+            printf 'not running.\n'
+        fi
+    fi
+    if test "$operation" != 'stop'; then
+        printf 'Starting Nginx... '
+        if isNginxRunning; then
+            printf 'already running.\n'
+        else
+            if service nginx start >/dev/null; then
+                printf 'done.\n'
+            else
+                printf '\nFAILED!.\n' >&2
+                rc=1
+            fi
+        fi
+    fi
+fi
+
+if test $do_phpfpm -ne 0; then
+    if test "$operation" != 'start'; then
+        printf 'Stopping PHP-FPM... '
+        if isPhpFpmRunning; then
+            if service php$(getPhpMajorMinor)-fpm stop; then
+                /usr/lib/php/php-fpm-socket-helper remove /run/php/php-fpm.sock /etc/php/$(getPhpMajorMinor)/fpm/pool.d/www.conf $(getPhpMajorMinorInt)
+                printf 'done.\n'
+            else
+                printf '\nFAILED!.\n' >&2
+                rc=1
+            fi
+        else
+            printf 'not running.\n'
+        fi
+    fi
+    if test "$operation" != 'stop'; then
+        printf 'Starting PHP-FPM... '
+        if isPhpFpmRunning; then
+            printf 'already running.\n'
+        else
+            if service php$(getPhpMajorMinor)-fpm start; then
+                if /usr/lib/php/php-fpm-socket-helper install /run/php/php-fpm.sock /etc/php/$(getPhpMajorMinor)/fpm/pool.d/www.conf $(getPhpMajorMinorInt); then
+                    printf 'done.\n'
+                else
+                    printf '\nFAILED!.\n' >&2
+                fi
+            else
+                printf '\nFAILED!.\n' >&2
+                rc=1
+            fi
+        fi
+    fi
+fi
+
+sync || true
+
+exit $rc

@@ -1,0 +1,32 @@
+#!/bin/sh
+
+set -o nounset
+set -o errexit
+
+cat <<EOT
+docker5 images come with the following CLI commands:
+
+- ccm-help: display this help text.
+
+- ccm-service: start/restart/stop services.
+  Invoke it without arguments to get some help.
+
+- switch-composer: change the composer version to be used.
+  Invoke it without arguments to get some help.
+
+- switch-php: change the PHP version to be used.
+  Invoke it without arguments to get some help.
+
+
+Concrete has been installed with this options:
+
+- Concrete user name: admin
+- Concrete user password: 12345
+- Name of the Concrete database: c5
+- Database user name: c5
+- Database user password: 12345
+- Exposed port for the website: 80
+- Exposed port for the database: 3306
+
+
+EOT

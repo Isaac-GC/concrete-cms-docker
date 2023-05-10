@@ -11,9 +11,6 @@ printTitle() {
 }
 
 printTitle 'Configuring environment'
-printf '(PHP version: %s, Composer version: %s)\n' "$CCM_PHP_VERSION" "$CCM_COMPOSER_VERSION"
-switch-php "$CCM_PHP_VERSION"
-switch-composer "$CCM_COMPOSER_VERSION"
 cd /app
 ccm-service start db
 
@@ -48,7 +45,7 @@ c5 c5:install \
     --db-password=12345 \
     --db-database=c5 \
     --site='ConcreteCMS website' \
-    --starting-point=$CCM_STARTING_POINT \
+    --starting-point="elemental_full" \
     --admin-email=admin@example.org \
     --admin-password=12345 \
 

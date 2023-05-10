@@ -65,6 +65,7 @@ unset PHP_EXTENSION
 printTitle 'Installing NodeJS'
 curl -sSL https://deb.nodesource.com/setup_16.x | bash -
 apt-get install -yqq --no-install-recommends nodejs
+npm install -g npm@9.6.6
 npm -g install grunt-cli
 
 printTitle 'Installing MariaDB'
@@ -80,13 +81,13 @@ mkdir -p /var/www/.composer
 chown -R www-data:www-data /var/www/.composer
 
 curl -sSLf -o /tmp/composer-installer https://getcomposer.org/installer
-php /tmp/composer-installer --install-dir=/usr/local/bin --filename=composer1 --1
-update-alternatives --quiet --install /usr/local/bin/composer composer /usr/local/bin/composer1 10
+# php /tmp/composer-installer --install-dir=/usr/local/bin --filename=composer1 --1
+# update-alternatives --quiet --install /usr/local/bin/composer composer /usr/local/bin/composer1 10
 php /tmp/composer-installer --install-dir=/usr/local/bin --filename=composer2 --2
 update-alternatives --quiet --install /usr/local/bin/composer composer /usr/local/bin/composer2 20
 rm /tmp/composer-installer
 
-switch-composer 1
+# switch-composer 1
 (sudo -H -u www-data -- composer clear-cache || true)
 
 printTitle 'Configuring database'
